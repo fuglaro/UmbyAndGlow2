@@ -13,3 +13,6 @@ ARCH = armv7emsp
 
 # Include to get the rules for compiling and linking the module
 include $(MPY_DIR)/py/dynruntime.mk
+
+# Ensure header dependencies are respected in rebuilds.
+build/src/game.o: | src/palette.h

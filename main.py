@@ -1,4 +1,5 @@
-
+# Setup, load, and run the game.
+# Built to be launched from the ThumbyColor menu.
 
 import os
 os.chdir(__file__.rpartition("/")[0])
