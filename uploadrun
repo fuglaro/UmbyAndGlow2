@@ -1,0 +1,22 @@
+#!/bin/sh -e
+
+if [ $# -lt 2 ]; then
+	echo "usage: $0 [src].. [dest-folder]"
+	echo " > running with default parameters"
+	exec "$0" *py /uploadrun-"$(basename $(realpath $(pwd)))"
+	exit
+fi
+
+DEST=${@:$#}
+
+mpremote fs mkdir "$DEST" 2&>/dev/null || true
+
+for SRC in "${@:1:$(($#-1))}"; do
+	echo Syncing "->$DEST/:" "$SRC"
+	mpremote fs cp "$SRC" ":$DEST/"
+done
+
+mpremote fs ls "$DEST/"
+
+mpremote exec "__import__('$DEST/main')"
+
