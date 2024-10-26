@@ -9,6 +9,7 @@
 ```
 git submodule update --init --recursive
 pip install mpremote pyelftools
+(cd micropython && make -C mpy-cross && cd ports/rp2 && make submodules && make clean && make)
 ```
 * Connect your device via USB.
 * Then build and run:

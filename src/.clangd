@@ -2,5 +2,3 @@ CompileFlags:
   Add:
     - "-I../micropython"
     - "-I../micropython/ports/rp2"
-    - "-I../micropython/lib/pico-sdk/src/rp2_common/hardware_flash/include"
-    - "-I../micropython/lib/pico-sdk/src/common/pico_base/include"
