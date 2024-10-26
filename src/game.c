@@ -46,8 +46,10 @@ static void paintsb_scroll(struct PaintScrollBuffer* buf, int lateral, int verti
     uint8_t* bb = buf->buf;
     uint8_t(*ptrn)(uint32_t,uint32_t) = buf->ptrn;
     // Fill space created by the the lateral shift.
-    const uint32_t bx = buf->x + (lateral&-(lateral<0)); // min(x,x+lateral)
-    const uint32_t bxe = buf->x + (lateral&-(lateral>0)); // max(x,x+lateral)
+    // lat < 0 ? x : x+WID-lat
+    const uint32_t bx = buf->x + ((SCR_WID-lateral)&-(lateral>0));
+    // lat < 0 ? x-lat : x+WID
+    const uint32_t bxe = buf->x - lateral + ((SCR_WID+lateral)&-(lateral>0));
     const uint32_t by = buf->y;
     const uint32_t bye = by+SCR_HGT;
     for (uint32_t x = bx; x < bxe; x++) {
@@ -56,11 +58,15 @@ static void paintsb_scroll(struct PaintScrollBuffer* buf, int lateral, int verti
             bb[xp + (y&SCR_MSK_HGT)] = ptrn(x, y);
         }
     }
-    // Fill the remaining space created by the vertical shift. 
-    const uint32_t bx2 = buf->x + (lateral&-(lateral>0)); // max(x,x+lateral)
-    const uint32_t bxe2 = buf->x + (lateral&-(lateral<0)) + SCR_WID; // min(x,x+lateral) + WID
-    const uint32_t by2 = buf->y + (vertical&-(vertical<0)); // min(y,y+vertical)
-    const uint32_t bye2 = buf->y + (vertical&-(vertical>0)); // max(y,y+vertical)
+    // Fill the remaining space created by the vertical shift.
+    // lat > 0 ? x : x-lat
+    const uint32_t bx2 = buf->x - (lateral&-(lateral<0));
+    // lat < 0 ? x+WID : x+WID-lat
+    const uint32_t bxe2 = buf->x + SCR_WID - (lateral&-(lateral>0));
+    // vert < 0 ? y : y+HGT-vert
+    const uint32_t by2 = buf->y + ((SCR_HGT-vertical)&-(vertical>0));
+    // vert < 0 ? y-vert : y+HGT
+    const uint32_t bye2 = buf->y - vertical + ((SCR_HGT+vertical)&-(vertical>0));
     for (uint32_t x = bx2; x < bxe2; x++) {
         uint32_t xp = (x&SCR_MSK_WID)*SCR_HGT;
         for (uint32_t y = by2; y < bye2; y++) {
@@ -86,25 +92,45 @@ static void paintsb_fill(struct PaintScrollBuffer* buf) {
 // Level Layers
 //
 struct PaintScrollBuffer back_scroll; ///< The non-interactive background layer.
-
-
-
+struct PaintScrollBuffer front_scroll; ///< The front layer (interactivity handled separately).
 
 /**
-* Render all layers to the framebuffer.
+* Render all layers to the framebuffer for a range of columns.
+* @param x1 Start of the range to render.
+* @param x2 The position of the range to stop rendering.
 */
-static void render() {
+static void render(int x1, int x2) {
+    const uint8_t* fb = front_scroll.buf;
+    const uint32_t fx = front_scroll.x;
+    const uint32_t fy = front_scroll.y;
     const uint8_t* bb = back_scroll.buf;
     const uint32_t bx = back_scroll.x;
     const uint32_t by = back_scroll.y;
-    uint16_t* fb = get_frame_buf();
-    for (uint32_t x = 0; x < SCR_WID; x++) {
-        uint32_t xp = ((bx+x)&SCR_MSK_WID)*SCR_HGT;
+    uint16_t* screen = get_frame_buf();
+    for (uint32_t x = x1; x < x2; x++) {
+        const uint8_t* fbx = fb + ((fx+x)&SCR_MSK_WID)*SCR_HGT;
+        const uint8_t* bbx = bb + ((bx+x)&SCR_MSK_WID)*SCR_HGT;
+        uint16_t* screenx = screen + x;
         for (uint32_t y = 0; y < SCR_HGT; y++) {
-            fb[x + y*SCR_WID] = cols[bb[xp + ((by+y)&SCR_MSK_HGT)]];
+            uint8_t pix = fbx[(fy+y)&SCR_MSK_HGT];
+            if (!pix) pix = bbx[(by+y)&SCR_MSK_HGT];
+            screenx[y*SCR_WID] = colors[pix];
         }
     }
 }
+/**
+* Render all layers to the framebuffer for the left half of the screen.
+*/
+static void render1() {
+    render(0, SCR_WID/2);
+}
+/**
+* Render all layers to the framebuffer for the right half of the screen.
+*/
+static void render2() {
+    render(SCR_WID/2, SCR_WID);
+}
+
 
 
 
@@ -117,15 +143,21 @@ void init() {
     init_patterns(); // Setup the patterns index table.
     // Prepare the level.
     back_scroll.ptrn = patterns[0/*ptrn_0*/];
-    back_scroll.x = back_scroll.y = MID_UINT;
+    back_scroll.x = MID_UINT;
+    back_scroll.y = MID_UINT;
+    front_scroll.ptrn = patterns[0/*ptrn_0*/];
+    front_scroll.x = MID_UINT;
+    front_scroll.y = MID_UINT;
 
 
     // XXX
-    back_scroll.ptrn = patterns[2/*ptrn_checker168*/];
+    back_scroll.ptrn = patterns[3/*ptrn_diag_gradient50*/];
+    front_scroll.ptrn = patterns[2/*ptrn_checker168*/];
 
 
     // Load the level.
     paintsb_fill(&back_scroll);
+    paintsb_fill(&front_scroll);
     debug("READY\n");
 }
 
@@ -133,7 +165,12 @@ void init() {
 * Update the game state, and draw for one frame.
 */
 void tick() {
-    paintsb_scroll(&back_scroll, -1, -1); // XXX
-    render();
+    paintsb_scroll(&back_scroll, -2, -2); // XXX
+    paintsb_scroll(&front_scroll, 1, 1); // XXX
+
+    // Render to the screen buffer on both cores.
+    spawn(&render2);
+    render1();
+    spawn_wait();
 }
 
