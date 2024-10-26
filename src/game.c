@@ -5,8 +5,9 @@
 #include "bridge.h"
 #include "stdint.h"
 #include "palette.h"
+#include "patterns.h"
 
-uint16_t cols[256]; ///< 8 Bit Color Palette -> RGB565.
+uint16_t colors[256]; ///< 8 Bit Color Palette -> RGB565.
 
 // Screen size relative parameters.
 #define SCR_WID 128 ///< Screen Width.
@@ -15,30 +16,6 @@ uint16_t cols[256]; ///< 8 Bit Color Palette -> RGB565.
 #define SCR_MSK_HGT 127 ///< Screen Height modulo mask.
 
 #define MID_UINT 2147483647 ///< Half the max u32 int.
-
-
-// XXX
-
-/// Pattern: pure 0 everywhere.
-static uint8_t ptrn_0(uint32_t x, uint32_t y) {
-    return 0;
-}
-/*
-/// Pattern: 8x8 checkerboard.
-static uint8_t ptrn_checker8(uint x, uint y) {
-    return (((x>>3)+(y>>3))&1)*255;
-}
-*/
-/// Pattern: 16x8 checkerboard.
-static uint8_t ptrn_checker168(uint32_t x, uint32_t y) {
-    return (((x>>4)+(y>>3))&1)*255;
-}
-/*
-/// Pattern: diagonal gradient 0-50 wrapping.
-static uint8_t ptrn_diag_gradient50(uint x, uint y) {
-    return (x + y)%50;
-}
-*/
 
 
 
@@ -104,7 +81,10 @@ static void paintsb_fill(struct PaintScrollBuffer* buf) {
 
 
 
-// The layers of the level.
+
+///////////////////////
+// Level Layers
+//
 struct PaintScrollBuffer back_scroll; ///< The non-interactive background layer.
 
 
@@ -134,13 +114,14 @@ static void render() {
 void init() {
     debug("INIT\n");
     INIT_PALETTE // Setup the color palette.
+    init_patterns(); // Setup the patterns index table.
     // Prepare the level.
-    back_scroll.ptrn = &ptrn_0;
+    back_scroll.ptrn = patterns[0/*ptrn_0*/];
     back_scroll.x = back_scroll.y = MID_UINT;
 
 
     // XXX
-    back_scroll.ptrn = &ptrn_checker168;
+    back_scroll.ptrn = patterns[2/*ptrn_checker168*/];
 
 
     // Load the level.

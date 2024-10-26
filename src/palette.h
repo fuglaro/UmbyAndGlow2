@@ -4,15 +4,17 @@
 #define C(R,G,B) ( ((R*31/255)<<11) + ((G*63/255)<<5) + (B*31/255) )
 // The 8 Bit Color Palette.
 #define COL0   C(   0,   0,   0 )
+                                  #define COL_GRAYS 1
 #define COL1   C(   0,   0,   0 )
-#define COL2   C(   0,   0,   0 )
-#define COL3   C(   0,   0,   0 )
-#define COL4   C(   0,   0,   0 )
-#define COL5   C(   0,   0,   0 )
-#define COL6   C(   0,   0,   0 )
-#define COL7   C(   0,   0,   0 )
-#define COL8   C(   0,   0,   0 )
-#define COL9   C(   0,   0,   0 )
+#define COL2   C(  32,  32,  32 )
+#define COL3   C(  64,  64,  64 )
+#define COL4   C(  96,  96,  96 )
+#define COL5   C( 128, 128, 128 )
+#define COL6   C( 160, 160, 160 )
+#define COL7   C( 192, 192, 192 )
+#define COL8   C( 224, 224, 224 )
+#define COL9   C( 255, 255, 255 )
+                                  #define COL_GRAYS_N 9
 #define COL10  C(   0,   0,   0 )
 #define COL11  C(   0,   0,   0 )
 #define COL12  C(   0,   0,   0 )
@@ -260,7 +262,7 @@
 #define COL254 C(   0,   0,   0 )
 #define COL255 C( 255,   0,   0 )
 
-#define P(I) cols[I] = COL##I;
+#define P(I) colors[I] = COL##I;
 #define INIT_PALETTE \
 P(0)P(1)P(2)P(3)P(4)P(5)P(6)P(7)P(8)P(9)P(10)P(11)P(12)P(13)P(14)P(15)P(16)P(17)P(18)P(19)\
 P(20)P(21)P(22)P(23)P(24)P(25)P(26)P(27)P(28)P(29)P(30)P(31)P(32)P(33)P(34)P(35)P(36)P(37)\

@@ -6,7 +6,7 @@ MPY_DIR = micropython
 MOD = game
 
 # Source files (.c or .py)
-SRC = src/game.c src/bridge.c
+SRC = src/game.c src/bridge.c src/patterns.c
 
 # Architecture to build for (x86, x64, armv6m, armv7m, xtensa, xtensawin)
 ARCH = armv7emsp
@@ -15,5 +15,6 @@ ARCH = armv7emsp
 include $(MPY_DIR)/py/dynruntime.mk
 
 # Ensure header dependencies are respected in rebuilds.
-build/src/game.o: | src/palette.h src/bridge.h
+build/src/game.o: | src/palette.h src/bridge.h src/patterns.h
 build/src/bridge.o: | src/game.h
+build/src/patterns.o: | src/patterns.h
