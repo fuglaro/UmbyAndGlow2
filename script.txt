@@ -1,0 +1,12 @@
+
+_/3:0,0@0 #diag_gradient50
+'/2:0,0@0 #checker168
+
+'/2:0,0@0 #checker8
+
+>START
+
+@600,100
+@-600,-100
+
+<START

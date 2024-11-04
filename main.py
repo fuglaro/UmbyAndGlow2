@@ -12,6 +12,7 @@ import engine_main
 from engine import tick as engine_tick, fps_limit, freq
 from engine_draw import front_fb_data
 from time import ticks_ms
+from script import events_batcher
 gc.collect()
 fps_limit(40)
 freq(128000000)
@@ -20,8 +21,12 @@ freq(128000000)
 import game
 game.init(front_fb_data())
 
+# Initialise the story.
+story = events_batcher(game)
+
 # Ready the second core.
 _thread.stack_size(4096)
+@micropython.native
 def spawn_loop(tick):
     while True:
         tick()
@@ -33,6 +38,7 @@ eng_wait = 0
 while True:
 
     # Update the game one tick.
+    next(story)
     game.tick()
 
     # Wait for the next display update and profile.

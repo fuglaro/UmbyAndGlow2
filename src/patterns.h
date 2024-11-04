@@ -11,5 +11,5 @@ PATTERN(      3, ptrn_diag_gradient50)
 PATTERNS      4 // !!! Ensure PATTERNS (array length) is updated !!!
 
 
-extern uint8_t (*patterns[PATTERNS]) (uint32_t, uint32_t);
+extern uint8_t (*patterns[PATTERNS]) (int32_t, int32_t);
 void init_patterns();

@@ -3,7 +3,7 @@
 if [ $# -lt 2 ]; then
 	echo "usage: $0 [src].. [dest-folder]"
 	echo " > running with default parameters"
-	exec "$0" *py /uploadrun-"$(basename $(realpath $(pwd)))"
+	exec "$0" *py *.txt /uploadrun-"$(basename $(realpath $(pwd)))"
 	exit
 fi
 
