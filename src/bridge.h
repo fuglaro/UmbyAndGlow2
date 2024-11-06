@@ -6,4 +6,4 @@
 uint16_t* get_frame_buf();
 
 void spawn(void (*entry)(void));
-void spawn_wait();
+bool spawn_active();

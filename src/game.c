@@ -327,7 +327,7 @@ void tick() {
     // Render to the screen buffer on both cores.
     spawn(&render2);
     render1();
-    spawn_wait();
+    while (spawn_active()) {}
 
 }
 

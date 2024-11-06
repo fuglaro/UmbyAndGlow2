@@ -30,8 +30,8 @@ static void spawn_tick() {
 void spawn(void (*entry)(void)) {
     spawn_entry = entry;
 }
-void spawn_wait() {
-    while (spawn_entry != (void (*)(void)) 0) {}
+bool spawn_active() {
+    return spawn_entry;
 }
 
 ///////////////////////
