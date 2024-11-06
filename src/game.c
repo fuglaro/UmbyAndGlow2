@@ -19,8 +19,10 @@ uint16_t colors[256]; ///< 8 Bit Color Palette -> RGB565.
 
 
 
+
 ///////////////////////
 // Paint Scroll Buffer
+//
 /**
 * A 2D ring buffer for buffering a region of a 2D plane.
 * Uses column major ordering so bytes flow down and wrap right.
@@ -68,9 +70,9 @@ static void paintsb_scroll(struct PaintScrollBuffer* buf, const int lateral, con
 
     struct PatternShift* ptrn;
     struct PatternShift* ptrna = &buf->ptrna;
-    struct PatternShift* ptrnb = &buf->ptrna;
+    struct PatternShift* ptrnb = &buf->ptrnb;
     bool dep = buf->depth_switch;
-    bool pos = buf->switch_pos;
+    uint32_t pos = buf->switch_pos;
     // Fill space created by the the lateral shift.
     for (uint32_t x = bx; x < bxe; x++) {
         uint32_t xp = (x&SCR_MSK_WID)*SCR_HGT;
@@ -107,7 +109,6 @@ static void paintsb_fill(struct PaintScrollBuffer* buf) {
 //
 struct PaintScrollBuffer back_scroll; ///< The non-interactive background layer.
 struct PaintScrollBuffer front_scroll; ///< The front layer (interactivity handled separately).
-
 /**
 * Render all layers to the framebuffer for a range of columns.
 * @param x1 Start of the range to render.
@@ -148,19 +149,15 @@ static void render2() {
 
 
 
-
-
-
-
-
-// XXX
-
-struct Position {
+///////////////////////
+// Game State
+//
+/// View position (top left of screen).
+struct Point {
     uint32_t x;
     uint32_t y;
-};
-struct Position cam; //< Position of top left of screen.
-
+} cam;
+/// The next player goal location or line (after any boss is defeated).
 struct Checkpoint {
     #define CHKP_NONE 0
     #define CHKP_POSITIONAL 1
@@ -172,53 +169,65 @@ struct Checkpoint {
 } checkpoint;
 
 
+
+
+///////////////////////
+// Player State
+//
+/// The current player.
 struct Player {
     uint32_t x;
     uint32_t y;
     void(*driver)();    
 } player;
-
+/**
+* Automates the player, moving it through the goal locations,
+* for testing and demos.
+*/
 static void driver_auto_clip() {
-    player.x += checkpoint.x > player.x ? 1: checkpoint.x < player.x ? -1 : 0;   
-    player.y += checkpoint.y > player.y ? 1: checkpoint.y < player.y ? -1 : 0;   
+    player.x += checkpoint.x > player.x ? 1: checkpoint.x < player.x ? -1 : 0;
+    player.y += checkpoint.y > player.y ? 1: checkpoint.y < player.y ? -1 : 0;
+    // XXX TODO: search and destroy bosses.
 }
 
 
 
 
-
-
-
-
-
-
-
-
-
-// XXX
-# define CHKP_RANGE 8
-bool ready_for_events() {
-    return !checkpoint.type;
-}
-
+///////////////////////
+// Event Management
+//
+/**
+* Check if the player has triggered the checkpoint, and if they have,
+* remove the checkpoint goal so new script events can be recieved.
+*/
 void check_checkpoint() {
+    # define CHKP_RANGE 8 // Box radius for triggering checkpoint.
     bool rx = player.x > checkpoint.x - CHKP_RANGE && player.x < checkpoint.x + CHKP_RANGE;
     bool ry = player.y > checkpoint.y - CHKP_RANGE && player.y < checkpoint.y + CHKP_RANGE;
     if ((checkpoint.type == CHKP_POSITIONAL && rx && ry)
         || (checkpoint.type == CHKP_LATERAL && rx)
         || (checkpoint.type == CHKP_DEPTH && ry)) checkpoint.type = CHKP_NONE;
 }
-
+/**
+* Returns whether the game state is ready for more events from the script.
+*/
+bool ready_for_events() {
+    return !checkpoint.type;
+}
+/**
+* Recieves an event, and updates the game state accordingly.
+* The parameters are dynamic based on the event type.
+* See iterate_events inside script.py for details on the types and parameters.
+*/
 void send_event(const int type, const int i1, const int i2, const int i3, const int i4,
                 const char* text) {
-    debug("EVENT: %d %d %d %d %d '%s'\n", type, i1, i2, i3, i4, text); // XXX
-/* XXX
-        # 1,2,3=CHECKPOINT, 15=SPAWNER
-            # 1=CHECKPOINT(POSITIONAL), 2=CHECKPOINT(LATERAL), 3=CHECKPOINT(DEPTH)
-        # 10=DIALOG, 11=CHOICE
-        # 12=SECRET
-        # 13=BOSS, 14=SPAWN
-*/
+    debug("EVENT: %d %d %d %d %d '%s'\n", type, i1, i2, i3, i4, text);
+    /* XXX
+    8=TILE(VERTICAL_CHANGE), 9=TILE(LATERAL_CHANGE)
+    10=DIALOG, 11=CHOICE
+    12=SECRET
+    13=BOSS, 14=SPAWN
+    15=SPAWNER*/
     // 1=CHECKPOINT(POSITIONAL), 2=CHECKPOINT(LATERAL), 3=CHECKPOINT(DEPTH)
     if (type == CHKP_POSITIONAL || type == CHKP_LATERAL || type == CHKP_DEPTH) {
         checkpoint.type = type;
@@ -228,39 +237,44 @@ void send_event(const int type, const int i1, const int i2, const int i3, const 
     // 4,5=BACKGROUND, 6,7=FOREGROUND
     // 4,6=VERTICAL_CHANGE, 5,7=LATERAL_CHANGE
     else if (type >= 4 && type <= 7) {
-        debug("SET PATTERN %d %d\n", checkpoint.x, checkpoint.y);
+        if (i1 >= PATTERNS) return; // Overflow.
         // ARGS:: pattern, offsetX, offsetY, distance
         struct PaintScrollBuffer* buf = (type < 6) ? &back_scroll : &front_scroll;
         buf->depth_switch = !(type%2);
         int32_t x = i2 - checkpoint.x;
         int32_t y = i3 - checkpoint.y;
+        uint32_t orig_pos = (buf->depth_switch ? checkpoint.y : checkpoint.x);
+        buf->switch_pos = orig_pos + i4;
         if (type <= 5) { // Handle slower background scrolling.
-            x = i2 - (checkpoint.x>>1);
-            y = i3 - (checkpoint.y>>1);
+            x = i2 - (checkpoint.x>>1) - (SCR_WID>>2);
+            y = i3 - (checkpoint.y>>1) - ((SCR_HGT>>2));
+            buf->switch_pos = (buf->switch_pos>>1) + (SCR_WID>>2);
         }
-        uint8_t(*ptrn)(int32_t,int32_t) = patterns[i1];
-        if (!i4) {
-            buf->ptrna.ptrn = ptrn;
+        if (!i4) { // Set as both patterns.
+            buf->ptrna.ptrn = patterns[i1];
             buf->ptrna.x = x;
             buf->ptrna.y = y;
-            buf->ptrnb.ptrn = ptrn;
+            buf->ptrnb.ptrn = patterns[i1];
             buf->ptrnb.x = x;
             buf->ptrnb.y = y;
             paintsb_fill(buf);
-        } else {
-            // XXX
+        } else { // Reorder existing current pattern and add new one.
+            bool atside2 = ((buf->depth_switch && player.y > buf->switch_pos)
+                || (!buf->depth_switch && player.x > buf->switch_pos ));
+            struct PatternShift* current = atside2 ? &buf->ptrnb : &buf->ptrna;
+            struct PatternShift* other = atside2 ? &buf->ptrna : &buf->ptrnb;
+            struct PatternShift* target = i4 > 0 ? &buf->ptrnb : &buf->ptrna;
+            if (current == target) {
+                other->ptrn = current->ptrn;
+                other->x = current->x;
+                other->y = current->y;
+            }
+            target->ptrn = patterns[i1];
+            target->x = x;
+            target->y = y;
         }
     }
-    // 8=TILE(VERTICAL_CHANGE), 9=TILE(LATERAL_CHANGE)
-    // XXX
-
-  
 }
-
-
-
-// TODO XXX - make patterns center on 0,0 with MID_UINT subtraction.
-// TODO XXX - manage pattern switching with uber pattern functions.
 
 
 
@@ -304,8 +318,8 @@ void tick() {
         check_checkpoint();
     }
 
-    // Move camera. XXX
-    cam.x = player.x - (SCR_WID>>1);
+    // Move camera.
+    cam.x = player.x - (SCR_WID>>1); // XXX TODO: smoother camera motion.
     cam.y = player.y - (SCR_HGT>>1);
     paintsb_scroll(&back_scroll, (cam.x>>1) - back_scroll.x, (cam.y>>1) - back_scroll.y);
     paintsb_scroll(&front_scroll, cam.x - front_scroll.x, cam.y - front_scroll.y);
