@@ -68,6 +68,14 @@ static mp_obj_t wrap_send_event(mp_uint_t n_args, const mp_obj_t *args) {
     return mp_const_none;
 } static MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(send_event_obj, 6, 6, wrap_send_event);
 
+static mp_obj_t wrap_is_debug() {
+#ifdef DEBUG
+    return mp_obj_new_int(1);
+#else
+    return mp_obj_new_int(0);
+#endif
+} static MP_DEFINE_CONST_FUN_OBJ_0(is_debug_obj, wrap_is_debug);
+
 mp_obj_t mpy_init(mp_obj_fun_bc_t *self, size_t n_args, size_t n_kw, mp_obj_t *args) {
     MP_DYNRUNTIME_INIT_ENTRY;
     mp_store_global(MP_QSTR_init, MP_OBJ_FROM_PTR(&init_obj));
@@ -75,6 +83,7 @@ mp_obj_t mpy_init(mp_obj_fun_bc_t *self, size_t n_args, size_t n_kw, mp_obj_t *a
     mp_store_global(MP_QSTR_spawn_tick, MP_OBJ_FROM_PTR(&spawn_tick_obj));
     mp_store_global(MP_QSTR_ready_for_events, MP_OBJ_FROM_PTR(&ready_for_events_obj));
     mp_store_global(MP_QSTR_send_event, MP_OBJ_FROM_PTR(&send_event_obj));
+    mp_store_global(MP_QSTR_is_debug, MP_OBJ_FROM_PTR(&is_debug_obj));
     MP_DYNRUNTIME_INIT_EXIT;
 }
 

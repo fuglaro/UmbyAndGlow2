@@ -20,6 +20,7 @@ freq(128000000)
 # Initialise the C code.
 import game
 game.init(front_fb_data())
+no_debug = not game.is_debug()
 
 # Initialise the story.
 story = events_batcher(game)
@@ -41,14 +42,17 @@ while True:
     next(story)
     game.tick()
 
-    # Wait for the next display update and profile.
+    # Wait for the next display update.
     eng_start = ticks_ms()
     while not engine_tick():
+        continue
+
+    # Profiling.
+    if no_debug:
         continue
     eng_wait += ticks_ms() - eng_start
     t += 1
     if t == 40:
-        # XXX TODO: disable on 2 player comms.
         print("WAIT: %d%%" % (eng_wait // 10))
         gc.collect()
         print("FREE: %dK" % (gc.mem_free() // 1000))

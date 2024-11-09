@@ -15,7 +15,15 @@ pip install mpremote pyelftools
 * Then build and run:
 ```
 make V=1
-uploadrun
+./uploadrun
+```
+
+## Debug
+
+* Debugging can be enabled with:
+```
+make clean
+make V=1 CF=-DDEBUG && ./uploadrun
 ```
 
 # Notes
