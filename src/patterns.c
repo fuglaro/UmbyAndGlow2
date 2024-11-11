@@ -15,11 +15,22 @@ static uint8_t ptrn_0(int32_t x, int32_t y) {
 
 /// Pattern: 8x8 checkerboard.
 static uint8_t ptrn_checker8(int32_t x, int32_t y) {
-    return (((x>>3)+(y>>3))&1)*255;
+    return (((x>>3)+(y>>3))&1);
 }
 
 /// Pattern: 16x8 checkerboard.
 static uint8_t ptrn_checker168(int32_t x, int32_t y) {
+    return (((x>>4)+(y>>3))&1);
+}
+
+
+/// Pattern: 8x8 checkerboard.
+static uint8_t ptrn_checker8_red(int32_t x, int32_t y) {
+    return (((x>>3)+(y>>3))&1)*255;
+}
+
+/// Pattern: 16x8 checkerboard.
+static uint8_t ptrn_checker168_red(int32_t x, int32_t y) {
     return (((x>>4)+(y>>3))&1)*255;
 }
 

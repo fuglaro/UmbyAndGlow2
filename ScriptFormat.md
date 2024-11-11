@@ -37,13 +37,14 @@ I call this format UmbyScript.
 * Loads a pattern to the background, foreground, or tile-map layer.
 * The pattern is defined relative to cordinates that can by offset by X,Y.
 * Setting the distance to 0 will immetiately reload the layer.
+* There are 8 tile layers, each with their own pattern (N=1-8)
 
 Load a background change at a distance vertically away:
 ```
 _/PATTERN:X,Y@DISTANCE
 ```
 
-Load a background change at a distance laterally away.
+Load a background change at a distance laterally away:
 ```
 _|PATTERN:X,Y@DISTANCE
 ```
@@ -53,19 +54,19 @@ Load a foreground change at a distance vertically away:
 `/PATTERN:X,Y@DISTANCE
 ```
 
-Load a foreground change at a distance laterally away.
+Load a foreground change at a distance laterally away:
 ```
 `|PATTERN:X,Y@DISTANCE
 ```
 
-Load a tile-map change at a distance vertically away:
+Load a tile-map change on tile layer N at a distance vertically away:
 ```
-*/PATTERN:X,Y@DISTANCE
+*N/PATTERN:X,Y@DISTANCE
 ```
 
-Load a tile-map change at a distance laterally away.
+Load a tile-map change on tile layer N at a distance laterally away:
 ```
-*|PATTERN:X,Y@DISTANCE
+*N|PATTERN:X,Y@DISTANCE
 ```
 
 ## DIALOG

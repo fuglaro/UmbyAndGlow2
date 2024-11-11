@@ -1,5 +1,7 @@
 // Define the 8 Bit Color Palette and provide helper macros.
 
+#define COLORS 256
+
 /// Generate RGB565 from RGB888.
 #define C(R,G,B) ( ((R*31/255)<<11) + ((G*63/255)<<5) + (B*31/255) )
 // The 8 Bit Color Palette.
