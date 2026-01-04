@@ -55,7 +55,8 @@ struct PatternSwitch {
 * The buffer region is offset within the 2D plane with the x and y values.
 * Attribute ptrn MUST be set before calling associated tilesb_* functions.
 * Allows up to 8 superimposed patterns to feed the buffer.
-* Includes an extra 192 pixels of data in all directions beyond the screen.
+* Includes an extra 192 pixels of data in all directions beyond the screen,
+*   to allow for easy offscreen collision detection.
 */
 struct TileScrollBuffer {
     uint8_t buf[TBF_WID*TBF_HGT]; ///< Buffer for the region of the 2D plane.
@@ -141,6 +142,7 @@ static void tilesb_fill(struct TileScrollBuffer* buf) {
 * Has 8 bit color (256 color pallette) (4 pixels per i32 word).
 * The buffer region is offset within the 2D plane with the x and y values.
 * Attribute ptrn MUST be set before calling associated paintsb_* functions.
+* Is the same size of the screen.
 */
 struct PaintScrollBuffer {
     uint8_t buf[SCR_WID*SCR_HGT]; ///< Buffer for the region of the 2D plane.
