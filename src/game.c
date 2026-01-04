@@ -457,14 +457,3 @@ void tick() {
 
 }
 
-// XXX TODO: Tile buffer.
-// XXX TODO: Green mission arrows (corners lit to indicate direction).
-// XXX TODO: Player sprite.
-// XXX TODO: Checkpoint sprite.
-// XXX TODO: U&G's cave pattern.
-// XXX TODO: Interactivity buffer.
-// XXX TODO: Monsters (and spike).
-// XXX TODO: Grass shading on cave pattern.
-// XXX TODO: Dialog / choice screen (pauses gameplay, shows character faces).
-// XXX TODO: Make different face picture per emotion.
-// XXX TODO: 2 player comms (IGNORE UNTIL POST LAUNCH - must be funded since this is work not play).

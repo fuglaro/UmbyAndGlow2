@@ -34,20 +34,31 @@ make V=1 CF=-DDEBUG && ./uploadrun
 
 # TODO and Design Notes
 
-## Front Interaction Scroll Buffer
-• 1 bit per pixel, 8 pixels per byte.
-• air / ground.
-• column major order.
-• a full extra screen sized buffer in every direction for offscreen collision detection such that the full buffer size is 9 times that of the screen size.
-• the bottom edge byte of each scrolling column is ignored and is used to progressively fill.
-• 128*3*128*3 -> 18,434 bytes
+* Collision Scroll buffer (can be a different pattern).
+* Foreground Paint Scroll Buffer carving from Collision Scroll buffer.
+* Shading based on the Collision Scroll buffer, e.g: grass.
+* Test level.
+* Clipper.
+* U&G's cave pattern.
+* Umby.
+* Glow.
 
-## Front 8x8 Tile Scroll Buffer
-• 4 bits per pixel, 2 pixels per byte.
-• 15 tiles with alpha.
-• column major order.
-• a full extra screen sized buffer in every direction for offscreen collision detection such that the full buffer size is 9 times that of the screen size.
-• 16*3*16*3*4 bits -> 9,216 bytes
+## Other Things
+* Checkpoint sprite.
+* Green mission arrows (corners lit to indicate direction).
+* Monsters (and spike).
+* Grass shading on cave pattern.
+* Dialog / choice screen (pauses gameplay, shows character faces).
+* Make different face picture per emotion.
+* 2 player comms (IGNORE UNTIL POST LAUNCH - must be funded since this is work not play).
+
+## Collision Scroll Buffer
+* 1 bit per pixel, 8 pixels per byte.
+* air / ground.
+* does not include tile buffer, which manages it's own collision.
+* Caches destruction of non-tile foreground landscape.
+* column major order.
+* a full 192 pixels in every direction for offscreen collision detection.
 
 ## Hazards
 * Certain color ranges cause player harm like lava.
@@ -58,8 +69,12 @@ make V=1 CF=-DDEBUG && ./uploadrun
 ## Player Characters
 * Umby
 * Glow
-* Clip
+* Clipper (Test Worm that floats and hits objects and can explode.)
 * A.N.D.R.E.W (Autonomously Navigating Drone-Robot Earth-Worm)
+
+## Monsters
+* Some monsters can be recollored by offsetting into the palette, including into palette cycling ranges.
+* Slater (pillbug - recollorable)
 
 ## Weapons
 * Grenade
