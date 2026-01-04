@@ -22,6 +22,8 @@ uint8_t tiles[TILES][TLE_LEN]; ///< 8 Bit Tile Intex.
 #define TBF_MSK_WID 63 ///< Tile Buffer Width modulo mask.
 #define TBF_MSK_HGT 63 ///< Tile Buffer Height modulo mask.
 #define TBF_OVER 24 //< The number of tiles off the edge of the screen.
+#define CUL_WID 16 ///< Cull Buffer Width.
+#define CUL_HGT 16 ///< Cull Buffer Height.
 
 #define START 1073741823 ///< Beginning coordinate (quarter max uint32 or half max int32).
 
@@ -204,6 +206,39 @@ static void paintsb_fill(struct PaintScrollBuffer* buf) {
     buf->x -= SCR_WID;
     paintsb_scroll(buf, SCR_WID, 0);
 }
+
+
+///////////////////////
+// Cull Scroll Buffer
+//
+/**
+* A 2D ring buffer for buffering a region of a 1-bit plane.
+* Uses column major ordering so bytes flow down and wrap right.
+* Is 1-bit (monochrome) (32 pixels per i32 word).
+* The underlying array uses bit packing.
+* On bits indicate ground/collision, off bits indicate air/vacuum.
+* The buffer region is offset within the 2D plane with the x and y values.
+* Attribute ptrn MUST be set before calling associated cullsb_* functions.
+* Includes an extra 192 pixels of data in all directions beyond the screen,
+*   to allow for easy offscreen collision detection.
+*/
+struct CullScrollBuffer {
+    uint32_t buf[CUL_WID*CUL_HGT]; ///< Buffer for the region of the 2D plane.
+    uint32_t x, y; ///< Offsets the 2D plane.
+    struct PatternSwitch ptrns; // The pattern with position changes.
+};
+
+
+
+
+//////////////// XXX XXX XXX XXX XXX XXX
+
+
+
+
+
+
+
 
 
 
